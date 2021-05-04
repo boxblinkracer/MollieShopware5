@@ -48,6 +48,7 @@ jobs:
       - name: Download Shopware Logs
         if: ${{ always() }}
         run: |
+          mkdir -p $(pwd)/Tests/Cypress/cypress/shopware/logs
           docker cp shop:/var/www/html/var/log/. $(pwd)/Tests/Cypress/cypress/shopware/logs
           ls -la $(pwd)/Tests/Cypress/cypress/shopware/logs
 
