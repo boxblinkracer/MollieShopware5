@@ -49,6 +49,7 @@ jobs:
         if: ${{ always() }}
         run: |
           docker cp shop:/var/www/html/var/log/. Tests/Cypress/cypress/shopware/logs
+          ls -la Tests/Cypress/cypress/shopware/logs
 
       - name: Store Cypress Results
         if: ${{ always() }}
