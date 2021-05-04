@@ -48,8 +48,8 @@ jobs:
       - name: Download Shopware Logs
         if: ${{ always() }}
         run: |
-          docker cp shop:/var/www/html/var/log/. Tests/Cypress/cypress/shopware/logs
-          ls -la Tests/Cypress/cypress/shopware/logs
+          docker cp shop:/var/www/html/var/log/. $(pwd)/Tests/Cypress/cypress/shopware/logs
+          ls -la $(pwd)/Tests/Cypress/cypress/shopware/logs
 
       - name: Store Cypress Results
         if: ${{ always() }}
