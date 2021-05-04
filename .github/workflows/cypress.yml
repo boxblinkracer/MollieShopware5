@@ -7,7 +7,6 @@ jobs:
 
   e2e:
     name: E2E Tests | Shopware ${{ matrix.shopware }}
-    needs: integration_tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
