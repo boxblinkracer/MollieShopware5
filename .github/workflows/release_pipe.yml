@@ -12,11 +12,8 @@ jobs:
 
 
   release:
-    name: Release | Shopware ${{ matrix.shopware }}
+    name: Release
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        shopware: [ '5.6.10' ]
     steps:
 
       - name: Clone Code
@@ -24,7 +21,7 @@ jobs:
 
       - name: Start Docker
         run: |
-          docker run --rm -p 80:80 --name shop -d dockware/play:${{ matrix.shopware }}
+          docker run --rm -p 80:80 --name shop -d dockware/play:latest
           sleep 30
           docker logs shop
 
@@ -33,17 +30,14 @@ jobs:
 
       - name: Create ZIP File
         run: |
-          docker cp shop:/var/www/html/custom/plugins/MollieShopware
-          make release -B
+          docker exec shop bash -c 'cd /var/www/html/custom/plugins/MollieShopware && make release -B'
 
       - name: Download ZIP File
         run: docker cp shop:/var/www/html/custom/plugins/Mollie*.zip $(pwd)/release/MollieShopware.zip
 
-      - name: Store Relase Files
-        if: ${{ always() }}
+      - name: Store Release Files
         uses: actions/upload-artifact@v2
         with:
-          name: cypress_results_sw_v${{ matrix.shopware }}
+          name: MollieShopware.zip
           retention-days: 1
-          path: |
-            $(pwd)/release/MollieShopware.zip
+          path: $(pwd)/release/MollieShopware.zip
