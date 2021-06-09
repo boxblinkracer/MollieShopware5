@@ -33,11 +33,11 @@ jobs:
           docker exec shop bash -c 'cd /var/www/html/custom/plugins/MollieShopware && make release -B && cd .. && ls -la'
 
       - name: Download ZIP File
-        run: docker cp shop:/var/www/html/custom/plugins/MollieShopware-v1.8.1.zip $(pwd)/release/MollieShopware.zip
+        run: docker cp shop:/var/www/html/custom/plugins/MollieShopware-v1.8.1.zip $(pwd)/MollieShopware.zip
 
       - name: Store Release Files
         uses: actions/upload-artifact@v2
         with:
           name: MollieShopware.zip
           retention-days: 1
-          path: $(pwd)/release/MollieShopware.zip
+          path: $(pwd)/MollieShopware.zip
