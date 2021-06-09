@@ -35,6 +35,9 @@ jobs:
       - name: Download ZIP File
         run: docker cp shop:/var/www/html/custom/plugins/MollieShopware-v1.8.1.zip $(pwd)/MollieShopware.zip
 
+      - name: Local Folder
+        run: ls -la
+
       - name: Store Release Files
         uses: actions/upload-artifact@v2
         with:
