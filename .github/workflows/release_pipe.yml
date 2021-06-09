@@ -30,7 +30,7 @@ jobs:
 
       - name: Create ZIP File
         run: |
-          docker exec shop bash -c 'cd /var/www/html/custom/plugins/MollieShopware && make release -B'
+          docker exec shop bash -c 'cd /var/www/html/custom/plugins/MollieShopware && sudo make release -B'
 
       - name: Download ZIP File
         run: docker cp shop:/var/www/html/custom/plugins/.release/MollieShopware-v1.8.1.zip $(pwd)/MollieShopware.zip
