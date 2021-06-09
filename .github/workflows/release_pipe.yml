@@ -43,4 +43,4 @@ jobs:
         with:
           name: MollieShopware.zip
           retention-days: 1
-          path: $(pwd)/MollieShopware.zip
+          path: MollieShopware.zip
