@@ -33,7 +33,7 @@ jobs:
           docker exec shop bash -c 'cd /var/www/html/custom/plugins/MollieShopware && sudo make release -B'
 
       - name: Download ZIP File
-        run: docker cp shop:/var/www/html/custom/plugins/MollieShopware/.release/MollieShopware-v1.8.1.zip $(pwd)/MollieShopware.zip
+        run: docker cp shop:/var/www/html/custom/plugins/MollieShopware/.release $(pwd)/release
 
       - name: Local Folder
         run: ls -la
@@ -41,6 +41,6 @@ jobs:
       - name: Store Release Files
         uses: actions/upload-artifact@v2
         with:
-          name: MollieShopware.zip
-          retention-days: 1
-          path: MollieShopware.zip
+          - name: "ZIP File"
+            files: [ release/*.zip ]
+            retention-days: 1
