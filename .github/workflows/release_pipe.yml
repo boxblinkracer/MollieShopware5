@@ -28,17 +28,14 @@ jobs:
       - name: Upload into Docker
         run: docker cp $(pwd)/. shop:/var/www/html/MollieShopware
 
-      - name: Create ZIP File
+      - name: Create Release
         run: |
-          docker exec shop bash -c 'cd /var/www/html/MollieShopware && make release -B'
+          docker exec shop bash -c 'cd /var/www/html/MollieShopware && sudo make release -B'
 
-      - name: Download ZIP File
+      - name: Download File
         run: docker cp shop:/var/www/html/MollieShopware/.release/MollieShopware.zip $(pwd)/MollieShopware.zip
 
-      - name: Local Folder
-        run: ls -la
-
-      - name: Store Release Files
+      - name: Store File
         uses: actions/upload-artifact@v2
         with:
           name: MollieShopware.zip
