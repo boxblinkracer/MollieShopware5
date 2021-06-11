@@ -21,7 +21,7 @@ jobs:
 
       - name: Start Docker
         run: |
-          docker run --rm -p 80:80 --name shop -d dockware/flex:latest
+          docker run --rm -p 80:80 --name shop -d dockware/play:latest
           sleep 30
           docker logs shop
 
