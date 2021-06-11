@@ -41,6 +41,6 @@ jobs:
       - name: Store Release Files
         uses: actions/upload-artifact@v2
         with:
-          - name: "ZIP File"
-            files: [ release/*.zip ]
-            retention-days: 1
+          name: MollieShopware.zip
+          retention-days: 1
+          files: [ release/*.zip ]
