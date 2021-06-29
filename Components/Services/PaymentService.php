@@ -4,6 +4,7 @@ namespace MollieShopware\Components\Services;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\MollieApiClient;
 use Mollie\Api\Resources\Payment;
@@ -24,6 +25,8 @@ use MollieShopware\Exceptions\MolliePaymentConfigurationNotFound;
 use MollieShopware\Exceptions\MolliePaymentNotFound;
 use MollieShopware\Exceptions\TransactionNotFoundException;
 use MollieShopware\Gateways\MollieGatewayInterface;
+use MollieShopware\Models\Customer\Extension;
+use MollieShopware\Models\Customer\Fields\MollieID;
 use MollieShopware\Models\OrderLines;
 use MollieShopware\Models\Payment\Configuration;
 use MollieShopware\Models\Payment\ConfigurationKeys;
@@ -128,6 +131,11 @@ class PaymentService
      */
     private $smarty;
 
+    /**
+     * @var EntityManagerInterface
+     */
+    private $entityManager;
+
     private $orderLinesRepo;
 
 
@@ -146,14 +154,15 @@ class PaymentService
         $this->gwMollie = $gwMollie;
         $this->customEnvironmentVariables = $customEnvironmentVariables;
 
-        $this->orderLinesRepo = Shopware()->Container()->get('models')->getRepository('\MollieShopware\Models\OrderLines');
-        $this->repoTransactions = Shopware()->Container()->get('models')->getRepository('\MollieShopware\Models\Transaction');
-        $this->orderRepo = Shopware()->Models()->getRepository(Order::class);
-        $this->repoPaymentConfig = Shopware()->Models()->getRepository(Configuration::class);
-
         $this->translations = Shopware()->Container()->get('mollie_shopware.components.translation');
-
         $this->smarty = Shopware()->Container()->get('template');
+
+        $this->entityManager = Shopware()->Container()->get('models');
+
+        $this->orderLinesRepo = $this->entityManager->getRepository(OrderLines::class);
+        $this->repoTransactions = $this->entityManager->getRepository(Transaction::class);
+        $this->orderRepo = $this->entityManager->getRepository(Order::class);
+        $this->repoPaymentConfig = $this->entityManager->getRepository(Configuration::class);
 
         $this->paymentFactory = new PaymentFactory();
     }
@@ -214,6 +223,10 @@ class PaymentService
         $this->idealService = Shopware()->Container()->get('mollie_shopware.ideal_service');
         $this->customer = Shopware()->Container()->get('mollie_shopware.customer');
         $shopID = Shopware()->Shop()->getId();
+
+
+        $currentCustomer = $this->customer->getCurrent();
+
 
         $shopwareOrder = null;
 
@@ -295,8 +308,6 @@ class PaymentService
             # if so, get his selected iDeal issuer.
             # if an issuer has been set, then also use it for our payment,
             # otherwise just continue without a prefilled issuer.
-            $currentCustomer = $this->customer->getCurrent();
-
             if ($currentCustomer instanceof Customer) {
                 $issuer = $this->idealService->getCustomerIssuer($currentCustomer);
                 if (!empty($issuer)) {
@@ -328,13 +339,22 @@ class PaymentService
 
         # ------------------------------------------------------------------------------------------------------
 
+        # TODO if consent?!
+        $mollieCustomerId = $this->prepareMollieCustomerId($currentCustomer, $shopID, $paymentData);
+
+        # set the customer Id of our Mollie customer.
+        # this is an empty string if none exists.
+        $paymentMethodObject->setCustomerId($mollieCustomerId);
+
+        # ------------------------------------------------------------------------------------------------------
+
         if ($useOrdersAPI) {
 
             $requestBody = $paymentMethodObject->buildBodyOrdersAPI();
 
             # create a new ORDER in mollie
             # using our orders api request body
-            $mollieOrder = $this->apiClient->orders->create($requestBody);
+            $mollieOrder = $this->gwMollie->createOrder($requestBody);
 
             # update the orderId field of our transaction
             # this helps us to see the difference to a transaction
@@ -365,7 +385,7 @@ class PaymentService
 
             # create a new PAYMENT in mollie
             # using our payments api request body
-            $molliePayment = $this->apiClient->payments->create($requestBody);
+            $molliePayment = $this->gwMollie->createPayment($requestBody);
 
             # update the paymentID field of our transaction
             # this helps us to see the difference to an order
@@ -639,6 +659,56 @@ class PaymentService
         $transaction->setIsShipped(true);
         $entityManager->persist($transaction);
         $entityManager->flush();
+    }
+
+
+    /**
+     * @param $currentCustomer
+     * @param $shopID
+     * @param \MollieShopware\Services\Mollie\Payments\Models\Payment $paymentData
+     * @return mixed|string
+     */
+    private function prepareMollieCustomerId($currentCustomer, $shopID, \MollieShopware\Services\Mollie\Payments\Models\Payment $paymentData)
+    {
+        if (!$currentCustomer instanceof Customer) {
+            return '';
+        }
+
+        $isTestMode = $this->config->isTestmodeActive();
+
+        $extension = new Extension($currentCustomer);
+
+
+        $mollieShopConfig = $extension->getMollieID($shopID);
+
+        if ($mollieShopConfig instanceof MollieID) {
+
+            if ($isTestMode && !empty($mollieShopConfig->getTestId())) {
+                return $mollieShopConfig->getTestId();
+            }
+
+            if (!$isTestMode && !empty($mollieShopConfig->getLiveId())) {
+                return $mollieShopConfig->getLiveId();
+            }
+        }
+
+
+        # create a new customer in mollie
+        $newCustomerId = $this->gwMollie->createCustomer(
+            $paymentData->getBillingAddress()->getEmail(),
+            $paymentData->getBillingAddress()->getGivenName(),
+            $paymentData->getBillingAddress()->getFamilyName(),
+            $currentCustomer->getId()
+        );
+
+        # set and save our settings
+        $extension->setMollieId($shopID, $newCustomerId, $isTestMode);
+
+        $this->entityManager->persist($currentCustomer);
+        $this->entityManager->flush();
+
+
+        return $newCustomerId;
     }
 
 }

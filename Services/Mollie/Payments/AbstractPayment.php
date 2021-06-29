@@ -89,6 +89,14 @@ abstract class AbstractPayment implements PaymentInterface
      */
     private $expirationDays;
 
+    /**
+     * The optional mollie customer id,
+     * if existing.
+     *
+     * @var string
+     */
+    private $customerId;
+
 
     /**
      * @param AddressConverter $addressBuilder
@@ -104,6 +112,7 @@ abstract class AbstractPayment implements PaymentInterface
         $this->formatter = new NumberFormatter();
 
         $this->expirationDays = null;
+        $this->customerId = '';
     }
 
 
@@ -134,13 +143,22 @@ abstract class AbstractPayment implements PaymentInterface
         $this->expirationDays = $expirationDays;
     }
 
+    /**
+     * @param string $customerId
+     * @return void
+     */
+    public function setCustomerId($customerId)
+    {
+        $this->customerId = $customerId;
+    }
+
 
     /**
      * @return mixed[]
      */
     public function buildBodyPaymentsAPI()
     {
-        return [
+        $data = [
             'method' => $this->paymentMethod,
             'amount' => [
                 'currency' => $this->currency,
@@ -151,6 +169,12 @@ abstract class AbstractPayment implements PaymentInterface
             'locale' => $this->locale,
             'description' => $this->description,
         ];
+
+        if (!empty($this->customerId)) {
+            $data['customerId'] = $this->customerId;
+        }
+
+        return $data;
     }
 
     /**
@@ -190,6 +214,10 @@ abstract class AbstractPayment implements PaymentInterface
             $expiresAt = (string)date('Y-m-d', (int)strtotime(' + ' . $this->expirationDays . ' day'));
 
             $data['expiresAt'] = $expiresAt;
+        }
+
+        if (!empty($this->customerId)) {
+            $data['payment']['customerId'] = $this->customerId;
         }
 
         return $data;

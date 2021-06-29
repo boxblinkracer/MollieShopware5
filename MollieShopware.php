@@ -392,6 +392,22 @@ class MollieShopware extends Plugin
         } catch (Exception $ex) {
             //
         }
+
+        try {
+            $this->makeAttributes()->create(
+                [
+                    [
+                        's_user_attributes',
+                        'mollie_customer_ids',
+                        'string',
+                        []
+                    ]
+                ]
+            );
+        } catch (Exception $ex) {
+            //
+        }
+
     }
 
     /**

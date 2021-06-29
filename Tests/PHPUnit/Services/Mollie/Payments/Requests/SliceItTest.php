@@ -118,4 +118,17 @@ class SliceItTest extends TestCase
         $this->assertEquals($expectedDueDate, $request['expiresAt']);
     }
 
+    /**
+     * This test verifies that we can set a customer id
+     * for both types of requests
+     */
+    public function testCustomerId()
+    {
+        $this->payment->setCustomerId('cust_123');
+
+        $ordersRequest = $this->payment->buildBodyOrdersAPI();
+
+        $this->assertEquals('cust_123', $ordersRequest['payment']['customerId']);
+    }
+
 }

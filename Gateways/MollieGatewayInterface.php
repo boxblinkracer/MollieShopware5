@@ -45,6 +45,27 @@ interface MollieGatewayInterface
     public function getIdealIssuers();
 
     /**
+     * @param $email
+     * @param $firstname
+     * @param $lastname
+     * @param $shopwareId
+     * @return mixed
+     */
+    public function createCustomer($email, $firstname, $lastname, $shopwareId);
+
+    /**
+     * @param array $requestBody
+     * @return Payment
+     */
+    public function createPayment($requestBody);
+
+    /**
+     * @param array $requestBody
+     * @return Order
+     */
+    public function createOrder($requestBody);
+
+    /**
      * @param Order $mollieOrder
      * @param string $carrier
      * @param string $trackingNumber

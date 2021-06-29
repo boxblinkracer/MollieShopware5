@@ -91,6 +91,18 @@ class FakeMollieGateway implements MollieGatewayInterface
     {
     }
 
+    public function createCustomer($email, $firstname, $lastname, $shopwareId)
+    {
+    }
+
+    public function createPayment($requestBody)
+    {
+    }
+
+    public function createOrder($requestBody)
+    {
+    }
+
     /**
      * @param Order $mollieOrder
      * @param string $carrier

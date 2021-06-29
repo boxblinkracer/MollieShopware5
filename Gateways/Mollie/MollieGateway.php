@@ -140,6 +140,49 @@ class MollieGateway implements MollieGatewayInterface
     }
 
     /**
+     * @param $email
+     * @param $firstname
+     * @param $lastname
+     * @param $shopwareId
+     * @return mixed|string
+     * @throws \Mollie\Api\Exceptions\ApiException
+     */
+    public function createCustomer($email, $firstname, $lastname, $shopwareId)
+    {
+        $data = [
+            'name' => $firstname . ' ' . $lastname,
+            'email' => $email,
+            'metadata' => json_encode([
+                'shopwareId' => $shopwareId,
+            ])
+        ];
+
+        $customer = $this->apiClient->customers->create($data);
+
+        return $customer->id;
+    }
+
+    /**
+     * @param array $requestBody
+     * @return \Mollie\Api\Resources\Payment
+     * @throws \Mollie\Api\Exceptions\ApiException
+     */
+    public function createPayment($requestBody)
+    {
+        return $this->apiClient->payments->create($requestBody);
+    }
+
+    /**
+     * @param array $requestBody
+     * @return Order
+     * @throws \Mollie\Api\Exceptions\ApiException
+     */
+    public function createOrder($requestBody)
+    {
+        return $this->apiClient->orders->create($requestBody);
+    }
+
+    /**
      * @param Order $mollieOrder
      * @param string $carrier
      * @param string $trackingNumber
