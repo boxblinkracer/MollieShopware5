@@ -15,6 +15,7 @@ use MollieShopware\Components\MollieApiFactory;
 use MollieShopware\Components\Order\OrderCancellation;
 use MollieShopware\Components\Order\ShopwareOrderBuilder;
 use MollieShopware\Components\Services\OrderService;
+use MollieShopware\Components\SessionManager\SessionManager;
 use MollieShopware\Components\Shipping\Shipping;
 use MollieShopware\Components\TransactionBuilder\TransactionBuilder;
 use MollieShopware\Facades\CheckoutSession\CheckoutSessionFacade;
@@ -257,7 +258,7 @@ class Shopware_Controllers_Frontend_Mollie extends AbstractPaymentController
                 throw new Exception('Missing Transaction Number');
             }
 
-            $hasSession = $this->restoreSessionFacade->isOrderSessionExisting();
+            $hasSession = $this->restoreSessionFacade->isUserSessionExisting();
 
             # now verify if we still have no session?!
             # shouldn't happen in expected cases, because either it's there or it has been restored!
@@ -603,7 +604,7 @@ class Shopware_Controllers_Frontend_Mollie extends AbstractPaymentController
             $roundAfterTax = Shopware()->Config()->offsetGet('roundNetAfterTax');
 
             $transactionBuilder = new TransactionBuilder(
-                new \MollieShopware\Components\TransactionBuilder\Services\Session\Session(),
+                $sessionManager,
                 $repoTransactions,
                 $basket,
                 $shipping,
@@ -618,8 +619,6 @@ class Shopware_Controllers_Frontend_Mollie extends AbstractPaymentController
                 $this->logger,
                 $this,
                 $entityManager,
-                $basket,
-                $shipping,
                 $this->localeFinder,
                 $sBasket,
                 $swOrderBuilder,
